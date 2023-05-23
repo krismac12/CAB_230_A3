@@ -5,9 +5,15 @@ const getPersonById = async (req, res) => {
         const id = req.params.id;
     
         // Fetch the person by ID from the database
-        const person = await peopleModel.getPersonById(id);
+        const data = await peopleModel.getPersonById(id);
     
-        if (person) {
+        if (data) {
+            person = {
+                name:data.primaryName,
+                birthYear:data.birthYear || null,
+                deathYear:data.deathYear || null,
+                roles: 1
+            }
             res.json(person);
         } else {
             res.status(404).json({ error: 'Person not found' });
