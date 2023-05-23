@@ -55,14 +55,14 @@ const getAllMovies = async (req, res) => {
 
 const getMovieById = async (req, res) => {
     try {
-        const id = req.params.id; // Assuming the ID is passed as a route parameter
+        const id = req.params.id;
     
         // Fetch the movie by ID from the database
         const movie = await movieModel.getMovieById(id);
     
         // If the movie is found, fetch the principals by ID
         if (movie) {
-            const principals = await principalModel.getPrincipalsbyID(id);
+            const principals = await principalModel.getPrincipalsByID(id);
             movie.principals = principals;
     
             res.json(movie);

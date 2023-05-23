@@ -26,11 +26,15 @@ pool.getConnection((err, connection) => {
   connection.release();
 
 });
-// Import the route file
-const routes = require('./routes');    
+// Import the route files
+const movieRoutes = require('./routes/movieRoutes');
+const peopleRoutes = require('./routes/peopleRoutes');    
+
 
 // Mount the routes on the app
-app.use('/movies', routes);
+app.use('/movies', movieRoutes);
+app.use('/people', peopleRoutes);
+
 
 
 // Start the server
