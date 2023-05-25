@@ -29,11 +29,16 @@ pool.getConnection((err, connection) => {
 // Import the route files
 const movieRoutes = require('./routes/movieRoutes');
 const peopleRoutes = require('./routes/peopleRoutes');    
+const userRoutes = require('./routes/userRoutes');    
 
+
+// Middleware to parse JSON request body
+app.use(express.json());
 
 // Mount the routes on the app
 app.use('/movies', movieRoutes);
 app.use('/people', peopleRoutes);
+app.use('/user',userRoutes);
 
 
 
