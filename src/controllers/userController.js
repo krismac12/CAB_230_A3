@@ -125,7 +125,7 @@ const getUser = async (req, res) => {
                     lastName: user.lastName
                 });            
             }
-            
+
 			return res.json({
 				email: user.email,
 				firstName: user.firstName,
@@ -218,9 +218,85 @@ const putUser = async (req, res) => {
 		return res.status(500).json({ error: 'Internal server error' });
 	}
 };
+
+const refreshBearerToken = async (req, res) => {
+	try {
+		const { refreshToken } = req.body;
+
+		// Check if the refresh token is provided
+		if (!refreshToken) {
+			return res.status(400).json({
+				error: true,
+				message: "Request body incomplete, refresh token required",
+			});
+		}
+
+		// Verify and decode the refresh token
+		let decodedToken;
+		try {
+			decodedToken = jwt.verify(refreshToken, refreshTokenSecret);
+		} catch (error) {
+			// Handle token verification errors
+			return res.status(401).json({
+				error: true,
+				message: 'Invalid refresh token',
+			});
+		}
+
+
+		// Check if the token has expired
+		if (decodedToken.exp <= Math.floor(Date.now() / 1000)) {
+			return res.status(401).json({
+				error: true,
+				message: 'Refresh token has expired',
+			});
+		}
+
+		// Generate a new bearer token
+		const bearerToken = jwt.sign(
+			{
+				email: decodedToken.email,
+			},
+			jwtSecret,
+			{
+				expiresIn: jwtExpiresIn,
+			}
+		);
+
+        // Generate a new refresh token
+		const newRefreshToken = jwt.sign(
+			{
+				email: decodedToken.email,
+			},
+			refreshTokenSecret,
+			{
+				expiresIn: refreshTokenExpiresIn,
+			}
+		);
+
+		return res.json({
+			bearerToken: {
+				token: bearerToken,
+				token_type: 'Bearer',
+				expires_in: jwtExpiresIn,
+			},
+			refreshToken: {
+				token: newRefreshToken,
+				token_type: 'Refresh',
+				expires_in: refreshTokenExpiresIn,
+			},
+		});
+        
+	} catch (error) {
+		console.error('Error refreshing bearer token:', error);
+		return res.status(500).json({ error: 'Internal server error' });
+	}
+};
+
 module.exports = {
     registerUser,
     loginUser,
     getUser,
-    putUser
+    putUser,
+    refreshBearerToken
 };
