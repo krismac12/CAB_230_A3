@@ -99,17 +99,43 @@ const getUser = async (req, res) => {
 			return res.status(404).json({ error: true, message: 'User not found' });
 		}
 
-		if (authorizedHeader) {
+		if (!authorizedHeader) {
+			return res.json({
+				email: user.email,
+				firstName: user.firstName,
+				lastName: user.lastName
+			});
+		}
+
+		// Check if the authorization header is in the correct format
+		const [bearerKeyword, bearerToken] = authorizedHeader.split(' ');
+
+		if (bearerKeyword !== 'Bearer' || !bearerToken) {
+			return res.status(401).json({ error: true, message: 'Invalid authorization header' });
+		}
+
+		try {
+			const decodedToken = jwt.verify(bearerToken, 'secret');
+
+            // Check if the decoded token belongs to the email
+            if (decodedToken.email !== user.email) {
+                return res.json({
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName
+                });            
+            }
+            
 			return res.json({
 				email: user.email,
 				firstName: user.firstName,
 				lastName: user.lastName,
 				dob: user.dob,
 				address: user.address
-		    });
-
-		} else {
-			return res.json({
+			});
+		} catch (error) {
+			// Handle token verification errors
+            return res.json({
 				email: user.email,
 				firstName: user.firstName,
 				lastName: user.lastName
@@ -144,6 +170,28 @@ const putUser = async (req, res) => {
                 message: "Authorization header ('Bearer token') not found"
 		    });
 
+		}
+        const [bearerKeyword, bearerToken] = authorizedHeader.split(' ');
+
+		try {
+			const decodedToken = jwt.verify(bearerToken, 'secret');
+
+            // Check if the decoded token belongs to the email
+            if (decodedToken.email !== user.email) {
+                return res.status(401).json({ error: true, message: 'Invalid JWT token' });
+            }
+
+            // Check if the token has expired
+            const currentTimestamp = Math.floor(Date.now() / 1000);
+            if (decodedToken.exp && decodedToken.exp < currentTimestamp) {
+                return res.status(401).json({ error: true, message: 'JWT token has expired' });
+            }
+        } catch (error) {
+			// Handle token verification errors
+            return res.json({
+                error: true,
+                message: "Invalid JWT token"
+			});
 		}
 
         const update = await userModel.putUser(email,firstName,lastName,dob,address);
