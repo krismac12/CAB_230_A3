@@ -2,6 +2,18 @@ const userModel = require('../models/userModel');
 const jwt = require('jsonwebtoken');
 const { jwtSecret, jwtExpiresIn, refreshTokenSecret, refreshTokenExpiresIn } = require('../config');
 
+
+
+// Maintain a list of invalidated refresh tokens
+let invalidRefreshTokens = [];
+
+
+// Invalidate a refresh token by adding it to the blacklist
+const invalidateRefreshToken = (refreshToken) => {
+	invalidRefreshTokens.push(refreshToken);
+};
+
+
 // Controller Methods
 
 const registerUser = async (req, res) => {
@@ -252,6 +264,14 @@ const refreshBearerToken = async (req, res) => {
 			});
 		}
 
+		// Check if the refresh token is in the list of invalidated tokens
+		if (invalidRefreshTokens.includes(refreshToken)) {
+			return res.status(401).json({
+				error: true,
+				message: 'Refresh token has expired',
+			});
+		}
+
 		// Generate a new bearer token
 		const bearerToken = jwt.sign(
 			{
@@ -274,6 +294,8 @@ const refreshBearerToken = async (req, res) => {
 			}
 		);
 
+		await invalidateRefreshToken(refreshToken);
+
 		return res.json({
 			bearerToken: {
 				token: bearerToken,
@@ -292,11 +314,66 @@ const refreshBearerToken = async (req, res) => {
 		return res.status(500).json({ error: 'Internal server error' });
 	}
 };
+const logout = async (req, res) => {
+	try {
+		const { refreshToken } = req.body;
+
+		// Check if the refresh token is provided
+		if (!refreshToken) {
+			return res.status(400).json({
+				error: true,
+				message: 'Request body incomplete, refresh token required',
+			});
+		}
+
+		// Verify and decode the refresh token
+		let decodedToken;
+		try {
+			decodedToken = jwt.verify(refreshToken, refreshTokenSecret);
+		} catch (error) {
+			// Handle token verification errors
+			return res.status(401).json({
+				error: true,
+				message: 'Invalid refresh token',
+			});
+		}
+
+		// Check if the token has expired
+		if (decodedToken.exp <= Math.floor(Date.now() / 1000)) {
+			return res.status(401).json({
+				error: true,
+				message: 'Refresh token has expired',
+			});
+		}
+
+		// Check if the refresh token is in the list of invalidated tokens
+		if (invalidRefreshTokens.includes(refreshToken)) {
+			return res.status(401).json({
+				error: true,
+				message: 'Refresh token has expired',
+			});
+		}
+
+		// Add the refresh token to the blacklist
+		await invalidateRefreshToken(refreshToken);
+
+		return res.json({
+			message: 'Refresh token invalidated successfully',
+		});
+	} catch (error) {
+		console.error('Error invalidating refresh token:', error);
+		return res.status(500).json({ error: 'Internal server error' });
+	}
+};
+
+
+
 
 module.exports = {
     registerUser,
     loginUser,
     getUser,
     putUser,
-    refreshBearerToken
+    refreshBearerToken,
+	logout
 };
