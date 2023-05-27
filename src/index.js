@@ -1,7 +1,8 @@
 const express = require('express');
 const app = express();
 const mysql = require('mysql2');
-const fs = require('fs');
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json'); // or swagger.yaml
 
 
 
@@ -40,6 +41,7 @@ app.use('/movies', movieRoutes);
 app.use('/people', peopleRoutes);
 app.use('/user',userRoutes);
 
+app.use('/', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 
 // Start the server
