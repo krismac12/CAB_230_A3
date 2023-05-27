@@ -186,7 +186,7 @@ const putUser = async (req, res) => {
         const [bearerKeyword, bearerToken] = authorizedHeader.split(' ');
 
 		try {
-			const decodedToken = jwt.verify(bearerToken, 'secret');
+			const decodedToken = jwt.verify(bearerToken, jwtSecret);
 
             // Check if the decoded token belongs to the email
             if (decodedToken.email !== user.email) {
@@ -205,7 +205,13 @@ const putUser = async (req, res) => {
                 message: "Invalid JWT token"
 			});
 		}
-
+		if (dob && !/^\d{4}-\d{2}-\d{2}$/.test(dob)) {
+			return res.status(400).json({
+				error: true,
+				message: "Invalid input: dob must be a valid date in the format YYYY-MM-DD"
+			});
+		}
+		
         const update = await userModel.putUser(email,firstName,lastName,dob,address);
 
         // User update unsuccessful

@@ -1049,6 +1049,27 @@
                 }
               }
             },
+            "400": {
+              "description": "Bad Request",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error": {
+                        "type": "boolean",
+                        "description": "Indicates if an error occurred."
+                      },
+                      "message": {
+                        "type": "string",
+                        "description": "Error message describing the invalid input.",
+                        "default":"Invalid input:"
+                      }
+                    }
+                  }
+                }
+              }
+            },
             "401": {
               "description": "Unauthorized",
               "content": {

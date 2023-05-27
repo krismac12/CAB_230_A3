@@ -19,6 +19,16 @@ const getPersonById = async (req, res) => {
             return res.status(404).json({ error: 'Person not found' });
         }
         const authorizedHeader = req.headers.authorization;
+
+        // No Bearer Token Found
+		if (!authorizedHeader) {
+			return res.status(401).json({
+				error: true,
+                message: "Authorization header ('Bearer token') not found"
+		    });
+
+		}
+
         const [bearerKeyword, bearerToken] = authorizedHeader.split(' ');
 		try {
 			const decodedToken = jwt.verify(bearerToken, jwtSecret);
@@ -49,7 +59,6 @@ const getPersonById = async (req, res) => {
                 try {
                     characters = JSON.parse(matchingPrincipal.characters);
                 } catch (error) {
-                    console.error('Error parsing characters:', error);
                     characters = [];
                 }
                 const role = {
