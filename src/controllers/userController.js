@@ -127,7 +127,7 @@ const getUser = async (req, res) => {
 		}
 
 		try {
-			const decodedToken = jwt.verify(bearerToken, 'secret');
+			const decodedToken = jwt.verify(bearerToken, jwtSecret);
 
             // Check if the decoded token belongs to the email
             if (decodedToken.email !== user.email) {
