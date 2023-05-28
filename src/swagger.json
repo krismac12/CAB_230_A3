@@ -466,7 +466,7 @@
             }
           },
           "responses": {
-            "200": {
+            "201": {
               "description": "User created",
               "content": {
                 "application/json": {
@@ -1021,7 +1021,7 @@
             "required": true
           },
           "responses": {
-            "200": {
+            "201": {
               "description": "User profile updated successfully",
               "content": {
                 "application/json": {

@@ -44,7 +44,7 @@ const registerUser = async (req, res) => {
         const result = await userModel.createUser(email, password);
         if (result.success) {
             const user = result.user;
-            return res.json({message: "User created"});
+            return res.status(201).json({message: "User created"});
         } else {
             return res.status(500).json({ error: result.error });
         }
@@ -200,7 +200,7 @@ const putUser = async (req, res) => {
             }
         } catch (error) {
 			// Handle token verification errors
-            return res.json({
+            return res.status(401).json({
                 error: true,
                 message: "Invalid JWT token"
 			});
@@ -216,13 +216,13 @@ const putUser = async (req, res) => {
 
         // User update unsuccessful
         if(!update.success){
-            return res.json({error: update.message})
+            return res.status(500).json({error: update.message})
         }
 
         // user with updated details
         const newUser = await userModel.getUserByEmail(email);
 
-        return res.json({
+        return res.status(201).json({
             email: newUser.email,
             firstName: newUser.firstName,
             lastName: newUser.lastName,
